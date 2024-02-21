@@ -19,7 +19,7 @@ server:
 
 spring:
   profiles:
-    active: h2
+    active: mysql_dev
   thymeleaf:
     cache: true
     encoding: utf-8
@@ -59,11 +59,11 @@ shenyu:
       zombieCheckTimes: 5
       scheduledTime: 10
       nacosNameSpace: ShenyuRegisterCenter
-  sync:
-    websocket:
-      enabled: true
-      messageMaxSize: 10240
-      allowOrigins: ws://localhost:9095;ws://localhost:9195;
+#  sync:
+#    websocket:
+#      enabled: true
+#      messageMaxSize: 10240
+#      allowOrigins: ws://localhost:9095;ws://localhost:9195;
 #    apollo:
 #      meta: http://localhost:8080
 #      appId: shenyu

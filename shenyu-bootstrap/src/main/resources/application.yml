@@ -21,15 +21,17 @@ server:
     minResponseSize: 1MB # If the response data is greater than 1MB, enable compression.
 
 spring:
+  profiles:
+    active: dev
   main:
     allow-bean-definition-overriding: true
   application:
-    name: shenyu-bootstrap
+    name: gateway
   codec:
     max-in-memory-size: 2MB
   cloud:
     discovery:
-      enabled: false
+      enabled: true
     nacos:
       discovery:
         server-addr: 127.0.0.1:8848 # Spring Cloud Alibaba Dubbo use this.
@@ -40,14 +42,14 @@ spring:
 #springCloud-test:
 #  ribbon:
 #    NIWSServerListClassName: com.netflix.niws.loadbalancer.DiscoveryEnabledNIWSServerList
-
-eureka:
-  client:
-    enabled: false
-    serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
-  instance:
-    prefer-ip-address: true
+#
+#eureka:
+#  client:
+#    enabled: true
+#    serviceUrl:
+#      defaultZone: http://admin:bjs191@10.7.132.61:9002/eureka/ #去哪里注册，eureka服务地址
+#  instance:
+#    prefer-ip-address: true
 
 #  security:
 #    oauth2:
@@ -224,11 +226,11 @@ shenyu:
     collapseSlashes: false
   file:
     enabled: true
-    maxSize : 10
-  sync:
-    websocket:
-      urls: ws://localhost:9095/websocket
-      allowOrigin: ws://localhost:9195
+    maxSize : 30  # 设置上传文件大小
+#  sync:
+#    websocket:
+#      urls: ws://localhost:9095/websocket
+#      allowOrigin: ws://localhost:9195
 #    apollo:
 #      appId: shenyu
 #      meta: http://localhost:8080

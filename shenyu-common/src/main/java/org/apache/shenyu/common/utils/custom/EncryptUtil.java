@@ -15,25 +15,24 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.bootstrap;
+package org.apache.shenyu.common.utils.custom;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
+import java.io.UnsupportedEncodingException;
 
 /**
- * Shenyu bootstrap.
+ * EncryptUtil.
  */
-@EnableEurekaClient
-@SpringBootApplication(scanBasePackages = {"cn.caschina.neon"})
-public class ShenyuBootstrapApplication {
+public final class EncryptUtil {
 
     /**
-     * Main Entrance.
-     *
-     * @param args startup arguments
+     * md5加密.
+     * @param content 密码
+     * @param charset 字符集
+     * @return string
+     * @throws UnsupportedEncodingException 异常
      */
-    public static void main(final String[] args) {
-        SpringApplication.run(ShenyuBootstrapApplication.class, args);
+    public static String md5(final String content, final String charset) throws UnsupportedEncodingException {
+        return MD5Util.encode(content.getBytes(charset));
     }
+
 }

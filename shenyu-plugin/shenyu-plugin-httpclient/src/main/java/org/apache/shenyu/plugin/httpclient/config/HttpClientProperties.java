@@ -119,7 +119,7 @@ public class HttpClientProperties {
     /**
      * body max memory size, unit mb.
      */
-    private Integer maxInMemorySize = 1;
+    private Integer maxInMemorySize = 10;
 
     /**
      * Gets strategy.

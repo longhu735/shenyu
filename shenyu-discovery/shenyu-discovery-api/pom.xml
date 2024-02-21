@@ -36,6 +36,16 @@
             <artifactId>spring-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>cn.caschina</groupId>
+            <artifactId>neon-lib-util-redis</artifactId>
+            <version>3.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.caschina</groupId>
+            <artifactId>neon-lib-util-tool</artifactId>
+            <version>3.0.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
 </project>

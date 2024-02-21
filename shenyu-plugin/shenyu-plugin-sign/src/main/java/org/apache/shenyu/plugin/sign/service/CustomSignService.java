@@ -17,32 +17,24 @@
 
 package org.apache.shenyu.plugin.sign.service;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.dto.AppAuthData;
-import org.apache.shenyu.common.dto.AuthParamData;
-import org.apache.shenyu.common.dto.AuthPathData;
 import org.apache.shenyu.common.utils.DateUtils;
-import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
-import org.apache.shenyu.plugin.base.utils.PathMatchUtils;
 import org.apache.shenyu.plugin.sign.api.SignParameters;
 import org.apache.shenyu.plugin.sign.api.VerifyResult;
 import org.apache.shenyu.plugin.sign.api.VerifySupplier;
-import org.apache.shenyu.plugin.sign.cache.SignAuthDataCache;
 import org.apache.shenyu.plugin.sign.extractor.SignParameterExtractor;
 import org.apache.shenyu.plugin.sign.provider.SignProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.BiFunction;
 
 /**
@@ -70,100 +62,78 @@ import java.util.function.BiFunction;
  *     Customs {@link org.apache.shenyu.plugin.sign.extractor.SignParameterExtractor} and {@link org.apache.shenyu.plugin.sign.provider.SignProvider}
  *  </pre>
  */
-public class ComposableSignService implements SignService {
-
-    private static final Logger LOG = LoggerFactory.getLogger(ComposableSignService.class);
+public class CustomSignService implements SignService {
+    private static final Logger LOG = LoggerFactory.getLogger(CustomSignService.class);
 
     @Value("${shenyu.sign.delay}")
     private int delay;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     private final SignParameterExtractor extractor;
 
     private final SignProvider signProvider;
 
-    public ComposableSignService(final SignParameterExtractor extractor, final SignProvider signProvider) {
+    public CustomSignService(final SignParameterExtractor extractor, final SignProvider signProvider) {
 
         this.extractor = extractor;
 
         this.signProvider = signProvider;
     }
 
+    /**
+     * Gets verifyResult.
+     *
+     * @param exchange    exchange
+     * @param requestBody requestBody
+     * @return result
+     */
     @Override
     public VerifyResult signatureVerify(final ServerWebExchange exchange, final String requestBody) {
         return signatureVerify(exchange, (signKey, signParameters) -> signProvider.generateSign(signKey, signParameters, requestBody));
     }
 
+    /**
+     * Gets verifyResult.
+     *
+     * @param exchange exchange
+     * @return result
+     */
     @Override
     public VerifyResult signatureVerify(final ServerWebExchange exchange) {
+
         return signatureVerify(exchange, signProvider::generateSign);
     }
 
     private VerifyResult signatureVerify(final ServerWebExchange exchange, final BiFunction<String, SignParameters, String> signFunction) {
-
-        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
         //生成请求参数 注意extractor的注入时间
         SignParameters signParameters = extractor.extract(exchange.getRequest());
-        //获取秘钥
-        AppAuthData appAuthData = Optional.ofNullable(signParameters.getAppKey())
-                .map(key -> SignAuthDataCache.getInstance().obtainAuthData(key))
-                .orElse(null);
-
-        VerifyResult result = verify(signParameters, appAuthData, signFunction);
-
-        if (result.isSuccess()) {
-            handleExchange(exchange, appAuthData, shenyuContext.getContextPath());
-        }
-
-        return result;
+        return verify(signParameters, signFunction);
     }
 
     private VerifyResult verify(final SignParameters signParameters,
-                                final AppAuthData appAuthData,
                                 final BiFunction<String, SignParameters, String> signFunction) {
-
         return VerifySupplier
                 .apply(() -> verifySignParameters(signParameters))
-                .and(() -> verifyExpires(signParameters))
-                .and(() -> verifyAuthConfig(appAuthData, signParameters))
-                .and(() -> verifyPath(appAuthData, signParameters))
-                .and(() -> verifySign(appAuthData.getAppSecret(), signParameters, signFunction))
+                .and(() -> verifyExpires(signParameters.getTimestamp()))
+                .and(() -> verifyAuthConfig(signParameters.getAppKey()))
+                .and(() -> verifySign(signParameters, signFunction))
                 .verify();
 
     }
 
-    private VerifyResult verifyPath(final AppAuthData appAuthData, final SignParameters signParameters) {
-        //校验appkey是否为当前访问的请求路径配置签名策略
-        if (BooleanUtils.isNotTrue(appAuthData.getOpen())) {
-            return VerifyResult.success();
-        }
-
-        List<AuthPathData> pathDataList = appAuthData.getPathDataList();
-        if (CollectionUtils.isEmpty(pathDataList)) {
-            LOG.error("You have not configured the sign path:{}", signParameters.getAppKey());
-            return VerifyResult.fail(Constants.SIGN_PATH_NOT_EXIST);
-        }
-
-        boolean match = pathDataList.stream().filter(AuthPathData::getEnabled)
-                .anyMatch(e -> PathMatchUtils.match(e.getPath(), signParameters.getUri().getPath()));
-        if (!match) {
-            LOG.error("You have not configured the sign path:{},{}", signParameters.getAppKey(), signParameters.getUri().getPath());
-            return VerifyResult.fail(Constants.SIGN_PATH_NOT_EXIST);
-        }
-        return VerifyResult.success();
-    }
-
-    private VerifyResult verifyAuthConfig(final AppAuthData appAuthData, final SignParameters signParameters) {
-        //验证APPKEY参数是否存在或启用
-        if (Objects.isNull(appAuthData) || BooleanUtils.isFalse(appAuthData.getEnabled())) {
-            LOG.error("sign APP_KEY does not exist or has been disabled,{}", signParameters.getAppKey());
+    //验证APPKEY参数是否存在或启用
+    private VerifyResult verifyAuthConfig(final String appKey) {
+        if (Objects.isNull(appKey)) {
+            LOG.error("sign APP_KEY does not exist {}", appKey);
             return VerifyResult.fail(Constants.SIGN_APP_KEY_IS_NOT_EXIST);
         }
         return VerifyResult.success();
     }
 
+    //签名参数非空校验
     private VerifyResult verifySignParameters(final SignParameters signParameters) {
-        //签名参数非空校验
         boolean success = StringUtils.isNoneBlank(signParameters.getAppKey())
                 && StringUtils.isNoneBlank(signParameters.getTimestamp())
                 && StringUtils.isNoneBlank(signParameters.getSignature());
@@ -174,22 +144,10 @@ public class ComposableSignService implements SignService {
         return VerifyResult.fail(Constants.SIGN_PARAMS_ERROR);
     }
 
-    private VerifyResult verifyExpires(final SignParameters signParameters) {
-        //验证该请求是否过期
-        final LocalDateTime start = DateUtils.formatLocalDateTimeFromTimestampBySystemTimezone(Long.parseLong(signParameters.getTimestamp()));
-        final LocalDateTime now = LocalDateTime.now();
-        final long between = DateUtils.acquireMinutesBetween(start, now);
-        if (Math.abs(between) <= delay) {
-            return VerifyResult.success();
-        }
-        return VerifyResult.fail(String.format(ShenyuResultEnum.SIGN_TIME_IS_TIMEOUT.getMsg(), delay));
-    }
+    private VerifyResult verifySign(final SignParameters signParameters, final BiFunction<String, SignParameters, String> signFunction) {
+        String secretKey = (String) redisTemplate.opsForValue().get("kepler-service-ops:gateway:token:" + signParameters.getAppKey());
 
-    private VerifyResult verifySign(final String signKey,
-                                    final SignParameters signParameters,
-                                    final BiFunction<String, SignParameters, String> signFunction) {
-
-        String sign = signFunction.apply(signKey, signParameters);
+        String sign = signFunction.apply(secretKey, signParameters);
 
         boolean result = Objects.equals(sign, signParameters.getSignature());
         if (!result) {
@@ -199,18 +157,15 @@ public class ComposableSignService implements SignService {
         return VerifyResult.success();
     }
 
-    private void handleExchange(final ServerWebExchange exchange,
-                                final AppAuthData appAuthData,
-                                final String contextPath) {
 
-        List<AuthParamData> paramDataList = appAuthData.getParamDataList();
-
-        if (!CollectionUtils.isEmpty(paramDataList)) {
-            paramDataList.stream().filter(p ->
-                    ("/" + p.getAppName()).equals(contextPath))
-                    .map(AuthParamData::getAppParam)
-                    .filter(StringUtils::isNoneBlank).findFirst()
-                    .ifPresent(param -> exchange.getRequest().mutate().headers(httpHeaders -> httpHeaders.set(Constants.APP_PARAM, param)).build());
+    //验证该请求是否过期
+    private VerifyResult verifyExpires(final String signParameters) {
+        final LocalDateTime start = DateUtils.parseLocalDateTime(signParameters, "yyyy-MM-dd HH:mm:ss");
+        final LocalDateTime now = LocalDateTime.now();
+        final long between = DateUtils.acquireMinutesBetween(start, now);
+        if (Math.abs(between) <= delay) {
+            return VerifyResult.success();
         }
+        return VerifyResult.fail(String.format(ShenyuResultEnum.SIGN_TIME_IS_TIMEOUT.getMsg(), delay));
     }
 }

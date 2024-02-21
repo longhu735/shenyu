@@ -74,7 +74,7 @@ public class ComposableSignService implements SignService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ComposableSignService.class);
 
-    @Value("${shenyu.sign.delay:5}")
+    @Value("${shenyu.sign.delay:1}")
     private int delay;
 
     private final SignParameterExtractor extractor;

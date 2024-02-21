@@ -34,3 +34,5 @@ shenyu:
     websocket:
       urls: ws://10.8.120.53:9095/websocket,ws://10.8.120.54:9095/websocket
 #      allowOrigin: ws://10.8.120.53:9195;ws://10.8.120.54:9195
+  sign:
+    delay: 1

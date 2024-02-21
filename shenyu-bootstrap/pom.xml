@@ -31,6 +31,15 @@
     </properties>
 
     <dependencies>
+        <!-- apache shenyu springCloud plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-httpclient</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- apache shenyu springCloud plugin end-->
+
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
@@ -572,6 +581,19 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
+                <configuration>
+                    <!-- 指定该Main Class为全局的唯一入口 -->
+                    <mainClass>org.apache.shenyu.bootstrap.ShenyuBootstrapApplication</mainClass>
+                    <layout>ZIP</layout>
+                    <includeSystemScope>true</includeSystemScope><!-- 把第三方jar包打进去 -->
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal><!--可以把依赖的包都打包到生成的Jar包中 -->
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

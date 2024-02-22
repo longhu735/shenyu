@@ -36,3 +36,8 @@ shenyu:
 #      allowOrigin: ws://localhost:9195
   sign:
     delay: 10
+  alert:
+    #是否开启告警消息
+    enabled: true
+    # the shenyu admin servers, if admin cluster, config like 127.0.0.1:9095,192.3.4.2:9095
+    admins: localhost:9095

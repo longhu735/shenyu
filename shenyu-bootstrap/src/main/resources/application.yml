@@ -288,9 +288,6 @@ shenyu:
     paths:
       - /actuator
       - /health_check
-  alert:
-    enabled: false
-    admins: localhost:9095
   extPlugin:
     path:
     enabled: true

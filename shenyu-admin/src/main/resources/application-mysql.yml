@@ -43,7 +43,7 @@ spring:
     host: smtp.qq.com
     username: shenyu@apache.com
     # Attention: this is not email account password, this requires an email authorization code
-    password: your-password
+    password: 123456
     #Attention: Tencent mail smtps 465,smtp 587
     port: 587
     properties:

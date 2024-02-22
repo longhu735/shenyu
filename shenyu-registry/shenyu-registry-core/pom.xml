@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-registry</artifactId>
-        <version>2.6.0</version>
+        <version>2.6.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-registry-core</artifactId>
@@ -53,7 +53,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-registry-apollo</artifactId>
+            <artifactId>shenyu-registry-polaris</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

@@ -68,7 +68,6 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
             selectorDTO.getSelectorConditions().forEach(selectorConditionDTO -> {
                 Assert.notBlack(selectorConditionDTO.getParamType(), "if type is custom, paramType is not empty");
                 Assert.notBlack(selectorConditionDTO.getParamName(), "if type is custom, paramName is not empty");
-                Assert.notBlack(selectorConditionDTO.getParamValue(), "if type is custom, paramValue is not empty");
             });
         }
         return StringUtils.isEmpty(selectorDTO.getId()) ? create(selectorDTO) : update(selectorDTO);
@@ -147,6 +146,15 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      * @return the selector do
      */
     SelectorDO findByNameAndPluginName(String name, String pluginName);
+
+    /**
+     * findByNameAndPluginNameForUpdate.
+     *
+     * @param name       name
+     * @param pluginName pluginName
+     * @return SelectorDO
+     */
+    SelectorDO findByNameAndPluginNameForUpdate(String name, String pluginName);
 
     /**
      * Find selectorDO list by name and plugin name list.

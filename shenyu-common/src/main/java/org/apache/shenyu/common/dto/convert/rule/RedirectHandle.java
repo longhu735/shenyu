@@ -27,7 +27,7 @@ public class RedirectHandle {
     /**
      * http status code.
      */
-    private Integer httpStatusCode = 302;
+    private Integer httpStatusCode = 308;
     
     /**
      * redirect url.

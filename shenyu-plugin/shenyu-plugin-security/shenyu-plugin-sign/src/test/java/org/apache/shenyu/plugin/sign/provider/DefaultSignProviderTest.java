@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.sign.provider;
 
 import com.google.common.collect.ImmutableMap;
+import org.apache.shenyu.common.utils.DigestUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.sign.api.SignParameters;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,8 @@ import org.junit.jupiter.api.Test;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Objects;
+import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -63,4 +66,44 @@ public class DefaultSignProviderTest {
         String actual = signProvider.generateSign("061521A73DD94A3FA873C25D050685BB", signParameters, JsonUtils.toJson(requestBody));
         assertThat(actual, is("61A097079016A18B1246A375482BEDBC"));
     }
+
+    @Test
+    //客户端调用demo
+    void testGenerateSignWithBody1() {
+        String AK = "869260F20A324D799C6554F354BC9FA9";
+        String SK = "CF413A21253F4C27832F2A0948144B3B";
+        String timestamp = "1709625896000";
+        String version = "2.0.0";
+        String parameters = JsonUtils.toJson(ImmutableMap.of(
+                "alg", "MD5",
+                "appKey", AK,
+                "timestamp", timestamp));
+        String base64Parameters = Base64.getEncoder()
+                .encodeToString(parameters.getBytes(StandardCharsets.UTF_8));
+
+        URI uri = URI.create("http://127.0.0.1:9195/ndc/aq/getPorts?id=2");
+        String signature = sign(SK,base64Parameters,uri,null);
+
+        String Token = base64Parameters+"."+signature;
+        //todo send http request
+        System.out.println(Token);
+
+
+    }
+    private  String sign(final String signKey, final String base64Parameters, final URI uri, final String body) {
+
+        String data = base64Parameters
+                + getRelativeURL(uri)
+                + Optional.ofNullable(body).orElse("");
+
+        return DigestUtils.md5Hex(data+signKey).toUpperCase();
+    }
+
+    private  String getRelativeURL(final URI uri) {
+        if (Objects.isNull(uri.getQuery())) {
+            return uri.getPath();
+        }
+        return uri.getPath() + "?" + uri.getQuery();
+    }
+
 }

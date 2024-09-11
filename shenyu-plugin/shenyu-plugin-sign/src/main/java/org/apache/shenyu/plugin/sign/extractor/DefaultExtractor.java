@@ -27,12 +27,15 @@ import java.util.Objects;
 
 public class DefaultExtractor implements SignParameterExtractor {
 
+    public static final String VERSION_0 = "0.0.0";
+
     public static final String VERSION_1 = "1.0.0";
 
     public static final String VERSION_2 = "2.0.0";
 
     private static final Map<String, SignParameterExtractor> VERSION_EXTRACTOR =
             ImmutableMap.of(
+                    VERSION_0, new VersionZeroExtractor(),
                     VERSION_1, new VersionOneExtractor(),
                     VERSION_2, new VersionTwoExtractor()
             );
@@ -42,7 +45,7 @@ public class DefaultExtractor implements SignParameterExtractor {
 
         String version = httpRequest.getHeaders().getFirst(Constants.VERSION);
         if (Objects.isNull(version)) {
-            return SignParameters.ERROR_PARAMETERS;
+            version = "0.0.0";
         }
 
         SignParameterExtractor extractor = VERSION_EXTRACTOR.get(version);

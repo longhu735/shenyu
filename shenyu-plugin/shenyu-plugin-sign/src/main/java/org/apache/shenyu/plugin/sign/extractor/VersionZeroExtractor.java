@@ -30,8 +30,10 @@ import java.net.URI;
 import java.net.URLDecoder;
 import java.util.Map;
 
-public class CustomExtractor implements SignParameterExtractor {
-    private static final Logger LOG = LoggerFactory.getLogger(CustomExtractor.class);
+import static org.apache.shenyu.plugin.sign.extractor.DefaultExtractor.VERSION_0;
+
+public class VersionZeroExtractor implements SignParameterExtractor {
+    private static final Logger LOG = LoggerFactory.getLogger(VersionZeroExtractor.class);
 
     @Override
     public SignParameters extract(final HttpRequest httpRequest) {
@@ -54,6 +56,6 @@ public class CustomExtractor implements SignParameterExtractor {
         }
         URI uri = httpRequest.getURI();
 
-        return new SignParameters(null, appKey, timestamp, signature, uri);
+        return new SignParameters(VERSION_0, appKey, timestamp, signature, uri);
     }
 }

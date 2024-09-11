@@ -22,6 +22,7 @@ import org.apache.shenyu.plugin.sign.api.SignParameters;
 
 import java.util.Map;
 
+import static org.apache.shenyu.plugin.sign.extractor.DefaultExtractor.VERSION_0;
 import static org.apache.shenyu.plugin.sign.extractor.DefaultExtractor.VERSION_1;
 import static org.apache.shenyu.plugin.sign.extractor.DefaultExtractor.VERSION_2;
 
@@ -29,6 +30,7 @@ public class DefaultSignProvider implements SignProvider {
 
     private static final Map<String, SignProvider> VERSION_SIGN =
             ImmutableMap.of(
+                    VERSION_0, new VersionZeroSignProvider(),
                     VERSION_1, new VersionOneSignProvider(),
                     VERSION_2, new VersionTwoSignProvider()
             );

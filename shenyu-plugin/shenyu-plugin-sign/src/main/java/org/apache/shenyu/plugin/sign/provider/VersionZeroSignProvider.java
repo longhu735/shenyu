@@ -32,8 +32,8 @@ import java.util.Map;
 import java.util.Objects;
 
 @Component
-public class CustomSignProvider implements SignProvider {
-    private static final Logger LOG = LoggerFactory.getLogger(CustomSignProvider.class);
+public class VersionZeroSignProvider implements SignProvider {
+    private static final Logger LOG = LoggerFactory.getLogger(VersionZeroSignProvider.class);
 
     @Override
     public String generateSign(final String signKey, final SignParameters signParameters, final String requestBody) {

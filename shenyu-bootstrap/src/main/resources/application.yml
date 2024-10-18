@@ -248,14 +248,6 @@ shenyu:
     printInterval: 60000
   ribbon:
     serverListRefreshInterval: 10000
-  metrics:
-    enabled: false
-    name : prometheus
-    host: 127.0.0.1
-    port: 8090
-    jmxConfig:
-    props:
-      jvm_enabled: true
 #  plugins:
 #    rate-limiter.enabled: false
   local:
